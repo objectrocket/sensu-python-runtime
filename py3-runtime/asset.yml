@@ -1,0 +1,17 @@
+type: Asset
+api_version: core/v2
+metadata:
+  created_by: admin
+  labels:
+    sensu.io/managed_by: sensuctl
+  name: sensu-python-runtime-${PYTHON_VERSION}-${OSDISTRO}
+  namespace: default
+spec:
+  builds:
+  - url: ${S3_FILE_URL}
+    sha512: '${SSUM}'
+    filters:
+    - entity.system.os == 'linux'
+    - entity.system.arch == 'amd64'
+    - entity.system.platform_family == '${OSDISTRO}'
+    headers: null

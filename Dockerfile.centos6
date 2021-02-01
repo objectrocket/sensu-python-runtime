@@ -1,4 +1,4 @@
-FROM centos:6
+FROM siva9427/centos6-python-3.6.12:latest
 
 LABEL name="sensu/sensu-python-runtime-centos6"
 
@@ -6,9 +6,25 @@ ARG PYTHON_VERSION=3.8.5
 ARG ASSET_VERSION=local_build
 ARG GREP_EXCLUDE='(ld.so|ld-linux-x86-64.so|libBrokenLocale.so|libSegFault.so|libanl.so|libc.so|libdl.so|libm.so|libmvec.so|libnss_compat.so|libnss_dns.so|libnss_files.so|libpthread.so|libresolv.so|librt.so|libthread_db.so|libutil.so|vdso.so)'
 
-RUN yum update -y && yum groupinstall -y "Development Tools" && yum install -y curl bzip2-devel zlib-devel sqlite-devel openssl-devel readline-devel
+# https://arstech.net/centos-6-error-yumrepo-error-all-mirror-urls-are-not-using-ftp-http/
+RUN cp /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.old
+COPY centos-base.repo /etc/yum.repos.d/CentOS-Base.repo
+
+RUN yum clean all
+RUN yum -y update
+RUN yum -y groupinstall "Development Tools"
+RUN yum -y install curl
+RUN yum -y install bzip2-devel
+RUN yum -y install zlib-devel
+RUN yum -y install sqlite-devel
+RUN yum -y install openssl-devel
+RUN yum -y install readline-devel
+RUN yum -y install libffi-devel
+RUN yum -y install wget
+RUN yum -y install gcc
 
 COPY scripts/pyenv-install pyenv-install
+COPY requirements.txt requirements.txt
 RUN ./pyenv-install
 
 RUN LIBS=$(find /build/pyenv -type f -executable -exec ldd {} 2>/dev/null \;|  grep "=>" | egrep -v ${GREP_EXCLUDE} | awk '{print $3}'| sort -u ) && \
